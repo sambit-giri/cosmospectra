@@ -15,5 +15,6 @@ setup(name='cosmospectra',
       package_dir = {'cosmospectra' : 'src'},
       packages=['cosmospectra'],
       package_data={'share':['*'],},
+      url="https://github.com/sambit-giri/cosmospectra.git"
       #include_package_data=True,
 )

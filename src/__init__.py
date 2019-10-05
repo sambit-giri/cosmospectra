@@ -14,8 +14,8 @@ For example:
 
 '''
 
-from power_spect_fast import *
-from power_spect_response import *
+from .power_spect_fast import *
+from .power_spect_response import *
 
 #Suppress warnings from zero-divisions and nans
 import numpy
