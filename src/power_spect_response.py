@@ -31,7 +31,10 @@ def integrated_bispectrum_cross(cube1, cube2, Ncuts=4, kbins=200, box_dims=None,
 def _W_L(array, rL, L):
 	assert array.ndim == np.array(rL).size
 	out = np.zeros(array.shape)
-	if np.array(L).size==1:out[(rL[0]-L/2):(rL[0]+L/2),(rL[1]-L/2):(rL[1]+L/2),(rL[2]-L/2):(rL[2]+L/2)] = 1
-	else:out[(rL[0]-L[0]/2):(rL[0]+L[0]/2),(rL[1]-L[1]/2):(rL[1]+L[1]/2),(rL[2]-L[2]/2):(rL[2]+L[2]/2)] = 1
+	if np.array(L).size==1: L = [L for i in range(array.ndim)]
+	xl = [int(rL[0]-L[0]/2),int(rL[0]+L[0]/2)]
+	yl = [int(rL[1]-L[1]/2),int(rL[1]+L[1]/2)]
+	zl = [int(rL[2]-L[2]/2),int(rL[2]+L[2]/2)]
+	out[xl[0]:xl[1], yl[0]:yl[1], zl[0]:zl[1]] = 1
 	return out
 

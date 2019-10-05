@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import stats
+from astropy import units as u
 
 def power_spect_nd(input_array, box_dims, verbose=True):
 	''' 
