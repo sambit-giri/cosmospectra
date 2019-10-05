@@ -1,5 +1,5 @@
 import numpy as np
-from power_spect_fast import *
+from .power_spect_fast import *
 
 def integrated_bispectrum_cross(cube1, cube2, Ncuts=4, kbins=200, box_dims=None, binning='log', normalize=False):
 	assert cube1.shape == cube2.shape
