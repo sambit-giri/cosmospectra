@@ -84,7 +84,7 @@ def integrated_bispectrum_cross_slide(cube1, cube2, L_long=400, kbins=15, box_di
 	B_k  = B_k/n_box
 	P_k  = P_k/n_box
 	sig2 = sig2/n_box
-	if verbose: print('The long wavelength mode is %.3f/cMpc'%(2*np.pi/(box_dims/Ncuts)))
+	if verbose: print('The long wavelength mode is %.3f/cMpc'%(2*np.pi/(box_dims*L_long/Lx)))
 	if normalize: return B_k/P_k/sig2, ks
 	return B_k, ks
 
