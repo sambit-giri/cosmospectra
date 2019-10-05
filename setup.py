@@ -1,0 +1,19 @@
+'''
+Created on 05 October 2019
+@author: Sambit Giri
+Setup script
+'''
+
+#from setuptools import setup, find_packages
+from distutils.core import setup
+
+
+setup(name='cosmospectra',
+      version='0.1',
+      author='Sambit Giri',
+      author_email='sambit.giri@astro.su.se',
+      package_dir = {'cosmospectra' : 'src'},
+      packages=['cosmospectra'],
+      package_data={'share':['*'],},
+      #include_package_data=True,
+)
