@@ -1,7 +1,7 @@
 import numpy as np
 from .power_spect_fast import *
 
-def power_spect_response(cube, cube2=None, Ncuts=4, kbins=15, box_dims=244/.7, binning='log', verbose=True):
+def power_spect_resp(cube, cube2=None, Ncuts=4, kbins=15, box_dims=244/.7, binning='log', verbose=True):
 	"""
 	See Chiang et al. (2014) and Giri et al. (2019)
 	"""
