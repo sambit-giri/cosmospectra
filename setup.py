@@ -15,6 +15,7 @@ setup(name='cosmospectra',
       package_dir = {'cosmospectra' : 'src'},
       packages=['cosmospectra'],
       package_data={'share':['*'],},
+      install_requires=['numpy','scipy','astropy', 'numba'],
       url="https://github.com/sambit-giri/cosmospectra.git"
       #include_package_data=True,
 )
