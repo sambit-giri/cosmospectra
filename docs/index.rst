@@ -9,12 +9,14 @@ CosmoSpectra package is meant for Fourier analysis of cosmological simulations.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
 Modules
 =======
-.. automodule:: cosmospectra.power_spect_response
-    :members:
+
+.. toctree::
+   :maxdepth: 2
+
+   power_spectrum_response
 
 Indices and tables
 ==================
