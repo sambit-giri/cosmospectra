@@ -1,7 +1,7 @@
 CosmoSpectra
 -------------
 CosmoSpectra package is meant for Fourier analysis of cosmological simulations.
-For full documentation, look [here](https://cosmospectra.readthedocs.io/en/latest/)
+For full documentation, look [here](https://cosmospectra.readthedocs.io/en/latest/).
 
 PREREQUISITES
 -------------
