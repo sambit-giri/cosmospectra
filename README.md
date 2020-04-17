@@ -12,12 +12,14 @@ PREREQUISITES
 
 INSTALLATION
 ------------
-python setup.py install
+To install the package in the standard location, run the following in the root directory::
 
-In order to install it in a separate directory:
+    python setup.py install
 
-python setup.py install --home=directory
+In order to install it in a separate directory::
 
-On can also install it using pip by running the following command:
+    python setup.py install --home=directory
 
-pip install git+https://github.com/sambit-giri/cosmospectra.git
+One can also install it using pip by running the following command::
+
+    pip install git+https://github.com/sambit-giri/cosmospectra.git
