@@ -28,7 +28,7 @@ class RandomSpheres:
             self.Rs = np.array([Rs for i in range(nR)])
         self.nR = self.Rs.size
 
-    def run_ListRadii(self, refresh=False):
+    def GetCube_ListRadii(self, refresh=False):
         if self.Rs is None:
             print('Define the radii of the spheres.')
             return None
@@ -38,7 +38,7 @@ class RandomSpheres:
             useful.loading_verbose('Number of spheres: %d/%d | Filling fraction:%.3f'%(i,self.nR,self.cube.mean()))
         return {'Rs': self.Rs, 'data': self.cube}
 
-    def run_FillingFraction(self, f, refresh=False, multi_rad=False, nOverlapFails=10):
+    def GetCube_FillingFraction(self, f, refresh=False, multi_rad=False, nOverlapFails=10):
         if self.Rs is None:
             print('Define the radii of the spheres.')
             return None
@@ -60,7 +60,29 @@ class RandomSpheres:
                 xi = self.cube.mean()
                 useful.loading_verbose('Number of spheres: %d | Filling fraction:%.3f'%(len(Rs),xi))
             if nOF>=nOverlapFails: break
-        return {'Rs': np.array(Rs), 'data': self.cube}
+        outdata = self.cube
+        outdata[outdata==0] = self.background
+        outdata[outdata==1] = self.label
+        return {'Rs': np.array(Rs), 'data': outdata}
+
+
+def analytical_powerspect_balls(k, R, xHI):
+    Vball = 4*np.pi*R**3/3
+    ni    = (1-xHI)/Vball
+    WkR   = _W(k*R)
+    pHI   = (1-xHI)**2*WkR**2/ni
+    return pHI
+
+def analytical_bispect_balls(k1, k2, k3, R, xHI):
+    Vball = 4*np.pi*R**3/3
+    ni    = (1-xHI)/Vball
+    WkR1   = _W(k1*R)
+    WkR2   = _W(k2*R)
+    WkR3   = _W(k3*R)
+    bHI   = -(1-xHI)**3*WkR1*WkR2*WkR3/ni**2
+    return bHI
+
+def _W(x): return (np.sin(x)-x*np.cos(x))*3/x**3
 
 def OverlappingBall(cube, r):
     centre = np.random.randint(0,cube.shape[0],3)
