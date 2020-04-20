@@ -7,5 +7,6 @@ randsphere = toymodel.RandomSpheres(
     allow_overlap=True,
     background=0,
     label=1,
+    Rs=10,
 )
-
+cube = randsphere.GetCube_FillingFraction(0.1)

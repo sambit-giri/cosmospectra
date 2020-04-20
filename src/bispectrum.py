@@ -12,7 +12,7 @@ class Bispectrum:
         [kx,ky,kz],k = _get_k(data, box_dims)
         self.ks = {'kx': kx, 'ky': ky, 'kz': kz, 'k':k}
 
-    def read_data(self, data=None, filename=None, file_reader=np.load):
+    def data(self, data=None, filename=None, file_reader=np.load):
         if data is None: data = file_reader(filename)
         self.data   = data
         self.dataft = np.fft.fftshift(np.fft.fftn(data.astype('float64'))))

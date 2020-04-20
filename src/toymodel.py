@@ -2,15 +2,16 @@ import numpy as np
 from . import useful
 
 class RandomSpheres:
-    def __init__(self, nGrid=100, allow_overlap=True, background=0, label=1):
+    def __init__(self, nGrid=100, allow_overlap=True, background=0, label=1, Rs=10):
         self.nGrid = nGrid
         self.background = background
         self.label = label
         self.allow_overlap = allow_overlap
         self.AllowOverlap()
         self.Refresh()
-        self.Rs = None
-        self.nR = None
+        #self.Rs = None
+        #self.nR = None
+        self.ListRadii(Rs, nR=None)
 
     def Refresh(self):
         self.cube = np.zeros((self.nGrid, self.nGrid, self.nGrid))
