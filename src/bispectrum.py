@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import stats
 from astropy import units as u
-import useful_speedup
+from . import useful_speedup
 
 class Bispectrum:
     def __init__(self, box_dims, nGrid, dk=0.05):

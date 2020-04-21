@@ -1,5 +1,6 @@
 import numpy as np
 from . import useful
+from . import useful_speedup 
 
 class RandomSpheres:
     def __init__(self, nGrid=100, allow_overlap=True, background=0, label=1, Rs=10):
@@ -87,29 +88,18 @@ def _W(x): return (np.sin(x)-x*np.cos(x))*3/x**3
 
 def OverlappingBall(cube, r):
     centre = np.random.randint(0,cube.shape[0],3)
-    return put_sphere(cube, centre, r, label=1, periodic=True)
+    return useful_speedup.put_sphere(cube, centre, r, label=1, periodic=True)
 
 def NonOverlappingBall(cube, r, max_iter=100):
     count = 0
     while count<max_iter:
         #print(count)
         centre = np.random.randint(0,cube.shape[0],3)
-        cube1  = put_sphere(cube, centre, r, label=1, periodic=True)
+        cube1  = useful_speedup.put_sphere(cube, centre, r, label=1, periodic=True)
         cube2  = cube+cube1
         #print(cube2.max())
         if cube2.max()==1: return cube2
         count += 1
     return None
 
-def put_sphere(data, centre, radius, label=1, periodic=True, refresh=False):
-    assert data.ndim == 3
-    nx, ny, nz = data.shape
-    array = np.zeros_like(data) if refresh else data.copy()
-    aw  = np.argwhere(np.isfinite(array))
-    RR  = ((aw[:,0]-centre[0])**2 + (aw[:,1]-centre[1])**2 + (aw[:,2]-centre[2])**2).reshape(array.shape)
-    array[RR<=radius**2] = label
-    if periodic: 
-        RR2 = ((aw[:,0]+nx-centre[0])**2 + (aw[:,1]+ny-centre[1])**2 + (aw[:,2]+nz-centre[2])**2).reshape(array.shape)
-        array[RR2<=radius**2] = label
-    return array
 
