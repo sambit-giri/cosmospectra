@@ -77,9 +77,9 @@ def analytical_powerspect_balls(k, R, xHI):
 def analytical_bispect_balls(k1, k2, k3, R, xHI):
     Vball = 4*np.pi*R**3/3
     ni    = (1-xHI)/Vball
-    WkR1   = _W(k1*R)
-    WkR2   = _W(k2*R)
-    WkR3   = _W(k3*R)
+    WkR1  = _W(k1*R)
+    WkR2  = _W(k2*R)
+    WkR3  = _W(k3*R)
     bHI   = -(1-xHI)**3*WkR1*WkR2*WkR3/ni**2
     return bHI
 

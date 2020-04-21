@@ -9,4 +9,5 @@ randsphere = toymodel.RandomSpheres(
     label=1,
     Rs=10,
 )
-cube = randsphere.GetCube_FillingFraction(0.01)
+out = randsphere.GetCube_FillingFraction(0.01)
+
