@@ -25,6 +25,10 @@ class Bispectrum:
 
     def Data(self, data=None, filename=None, file_reader=np.load):
         if data is None: data = file_reader(filename)
+        if data.shape[0]!=self.nGrid:
+            self.nGrid = data.shape[0]
+            self.Get_k(np.zeros((self.nGrid,self.nGrid,self.nGrid)), self.box_dims)
+            self.Binned_k(dk=dk)
         self.data   = data
         self.dataft = np.fft.fftshift(np.fft.fftn(data.astype('float64')))
 
@@ -81,10 +85,6 @@ class Bispectrum:
 
     def Bispec(self, data=None):
         if data is not None: self.Data(data=data)
-        if data.shape[0]!=self.nGrid:
-            self.nGrid = data.shape[0]
-            self.Get_k(np.zeros((self.nGrid,self.nGrid,self.nGrid)), self.box_dims)
-            self.Binned_k(dk=dk)
         self.Calc_Bk()
         return {'k': self.binned_k, 'Bk': self.Bks}
 
