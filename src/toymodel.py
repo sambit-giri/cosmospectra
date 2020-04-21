@@ -3,7 +3,7 @@ from . import useful
 from . import useful_speedup 
 
 class RandomSpheres:
-    def __init__(self, nGrid=100, allow_overlap=True, background=0, label=1, Rs=10):
+    def __init__(self, nGrid=100, allow_overlap=True, background=0, label=1, Rs=10, periodic=True):
         self.nGrid = nGrid
         self.background = background
         self.label = label
@@ -17,9 +17,9 @@ class RandomSpheres:
     def Refresh(self):
         self.cube = np.zeros((self.nGrid, self.nGrid, self.nGrid))
 
-    def AllowOverlap(self, max_iter=100):
-        if self.allow_overlap: self.PutSphere = lambda x,y: OverlappingBall(x,y)
-        else: self.PutSphere = lambda x,y: NonOverlappingBall(x,y,max_iter=max_iter)
+    def AllowOverlap(self, max_iter=100, periodic=True):
+        if self.allow_overlap: self.PutSphere = lambda x,y: OverlappingBall(x,y,periodic=periodic)
+        else: self.PutSphere = lambda x,y: NonOverlappingBall(x,y,max_iter=max_iter,periodic=periodic)
 
     def ListRadii(self, Rs, nR=None):
         if nR is None:
@@ -86,16 +86,16 @@ def analytical_bispect_balls(k1, k2, k3, R, xHI):
 
 def _W(x): return (np.sin(x)-x*np.cos(x))*3/x**3
 
-def OverlappingBall(cube, r):
+def OverlappingBall(cube, r, periodic=True):
     centre = np.random.randint(0,cube.shape[0],3)
-    return useful_speedup.put_sphere(cube, centre, r, label=1, periodic=True)
+    return useful_speedup.put_sphere(cube, centre, r, label=1, periodic=periodic)
 
-def NonOverlappingBall(cube, r, max_iter=100):
+def NonOverlappingBall(cube, r, max_iter=100, periodic=True):
     count = 0
     while count<max_iter:
         #print(count)
         centre = np.random.randint(0,cube.shape[0],3)
-        cube1  = useful_speedup.put_sphere(cube, centre, r, label=1, periodic=True)
+        cube1  = useful_speedup.put_sphere(cube, centre, r, label=1, periodic=periodic)
         cube2  = cube+cube1
         #print(cube2.max())
         if cube2.max()==1: return cube2
