@@ -18,7 +18,7 @@ out = randsphere.GetCube_FillingFraction(0.01)
 bisp = bispectrum.Bispectrum(box_dims, nGrid)
 bisp.Data(out['data'])
 
-ks   = 10**np.linspace(-1.2,0.3,50)
+ks   = 10**np.linspace(-1.2,0.3,100)
 equi = bisp.Calc_Bk_equilateral(ks)
 
 plt.plot(equi['k'], equi['Bk']*(equi['k']**3/2/np.pi**2)**2)

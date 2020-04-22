@@ -29,8 +29,12 @@ class Bispectrum:
             self.nGrid = data.shape[0]
             self.Get_k(np.zeros((self.nGrid,self.nGrid,self.nGrid)), self.box_dims)
             self.Binned_k(dk=dk)
-        self.data   = data
-        self.dataft = np.fft.fftshift(np.fft.fftn(data.astype('float64')))
+        self.data   = data	
+        self.boxvol = self.box_dims**3
+        self.nPixel = self.nGrid**3
+        self.pixelsize = boxvol/self.nPixel
+        self.dataft  = np.fft.fftshift(np.fft.fftn(self.data.astype('float64')))
+        self.dataft *= self.pixelsize
 
     def Calc_Bk_full(self):
         assert self.data is not None
@@ -72,14 +76,14 @@ class Bispectrum:
             Ifft1 = np.zeros_like(self.cube_k)
             Ifft1[np.abs(self.cube_k-k1)<self.dk/2] = 1
             dfft1 = self.dataft*Ifft1
-            I1 = np.fft.ifftn(np.fft.fftshift(Ifft1))
-            d1 = np.fft.ifftn(np.fft.fftshift(dfft1))
+            I1 = np.fft.ifftn(np.fft.fftshift(Ifft1))/self.boxvol
+            d1 = np.fft.ifftn(np.fft.fftshift(dfft1))/self.boxvol
             d123 = np.real(d1*d1*d1)
             I123 = np.real(I1*I1*I1)
-            bk = np.sum(d123)/np.sum(I123)*(self.box_dims**3)**2/(self.nGrid**3)**3
+            bk = np.sum(d123)/np.sum(I123)*(self.box_dims**3)**2/(self.nPixel)**3
             Bks[p] = bk
             count = p+1
-            print(bk)
+            print((k1**6/(2*np.pi**2)**2)*bk)
             print('%d / %d'%(count,binned_N))
         return {'k': self.binned_k, 'Bk': Bks}
 
