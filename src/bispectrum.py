@@ -32,7 +32,7 @@ class Bispectrum:
         self.data   = data	
         self.boxvol = self.box_dims**3
         self.nPixel = self.nGrid**3
-        self.pixelsize = boxvol/self.nPixel
+        self.pixelsize = self.boxvol/self.nPixel
         self.dataft  = np.fft.fftshift(np.fft.fftn(self.data.astype('float64')))
         self.dataft *= self.pixelsize
 
