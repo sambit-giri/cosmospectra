@@ -76,7 +76,7 @@ class Bispectrum:
             d1 = np.fft.ifftn(np.fft.fftshift(dfft1))
             d123 = np.real(d1*d1*d1)
             I123 = np.real(I1*I1*I1)
-            bk = np.sum(d123)/np.sum(I123)
+            bk = np.sum(d123)/np.sum(I123)*(self.box_dims**3)**2/(self.nGrid**3)**3
             Bks[p] = bk
             count = p+1
             print(bk)
