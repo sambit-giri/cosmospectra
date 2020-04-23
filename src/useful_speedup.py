@@ -30,3 +30,37 @@ def _sphere(array, radius, cx, cy, cz, label, periodic):
                 dist2 = (cx-i)**2+(cy-j)**2+(cz-k)**2
                 if dist2<rad2: array[i,j,k] = label
     return array
+
+def bispectrum_fast_equilateral(data, box_dims, s=None, dk=0.05, dlnk=None):
+    nGridx, nGridy, nGridz = data.shape
+    Mx, My, Mz = int(nGridx/2), int(nGridy/2), int(nGridz/2)
+    kF = 2*np.pi/box_dims
+    if s is None: 
+        s  = round(dk/kF)
+        dk = s*kF
+        print('The k bin width is recalculated to be %.4f/Mpc.'%dk)
+    dataft  = np.fft.fftn(data.astype('float64'))
+    #dataft  = np.fft.fftshift(dataft)
+    ns1, ns2, ns3 = np.arange(0,Mx,s)+s/2, np.arange(0,Mx,s)+s/2, np.arange(0,Mx,s)+s/2
+    num = _bispectrum_fast_equilateral_num(dataft, ns1)
+    den = 8*np.pi**2*s**3*ns1*ns1*ns1
+    V   = box_dims**3
+    return V**2/(nGridx*nGridy*nGridz)**9*num/den
+
+
+@njit(parallel=True)
+def _bispectrum_fast_equilateral_num(dataft, ns1):
+    nGridx, nGridy, nGridz = dataft.shape
+    Mx, My, Mz = int(nGridx/2), int(nGridy/2), int(nGridz/2)
+    fltn = dataft[:Mx,:My,:Mz].flatten()
+    N    = fltn.shape[0]
+    num  = np.zeros_like(ns1)
+    for m1 in prange(N):
+        for m2 in prange(N):
+            for m3 in prange(N):
+                for i,n1 in enumerate(ns1):
+                    print(m1,m2,m3,i)
+                    if np.abs(m1-n1)<s/2 and np.abs(m2-n1)<s/2 and np.abs(m3-n1)<s/2: 
+                        num[i] += fltn[m1]*fltn[m2]*fltn[m3]
+    return num
+

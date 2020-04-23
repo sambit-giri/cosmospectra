@@ -38,7 +38,7 @@ class Bispectrum:
 
     def Calc_Bk_full(self):
         assert self.data is not None
-        binned_N = self.binned_k.size
+        binned_N =kF = 2*np.pi/box_dims self.binned_k.size
         self.Bks = np.zeros((binned_N,binned_N,binned_N))
         for p,k1 in enumerate(self.binned_k):
             Ifft1 = np.zeros_like(self.cube_k)
@@ -76,11 +76,32 @@ class Bispectrum:
             Ifft1 = np.zeros_like(self.cube_k)
             Ifft1[np.abs(self.cube_k-k1)<self.dk/2] = 1
             dfft1 = self.dataft*Ifft1
-            I1 = np.fft.ifftn(np.fft.fftshift(Ifft1))/self.boxvol
+            I1 = np.fft.ifftn(np.fft.fftshift(Ifft1))/self.nPixel
             d1 = np.fft.ifftn(np.fft.fftshift(dfft1))/self.boxvol
+            d123 = np.sum(np.real(d1*d1*d1))
+            I123 = np.sum(np.real(I1*I1*I1)) #8*np.pi**2*k1*3*self.dk**3/kF**6 
+            bk   = d123/I123*(self.boxvol)**2/(self.nPixel)**3
+            Bks[p] = bk
+            count = p+1
+            print((k1**6/(2*np.pi**2)**2)*bk)
+            print('%d / %d'%(count,binned_N))
+        return {'k': self.binned_k, 'Bk': Bks}
+
+    def Calc_Bk_equilateral_foreman(self, binned_k=None, dk=0.05):
+        assert self.data is not None
+        if binned_k is not None: self.Binned_k(binned_k=binned_k, dk=dk)
+        binned_N = self.binned_k.size
+        Bks = np.zeros((binned_N))
+        for p,k1 in enumerate(self.binned_k):
+            Ifft1 = np.zeros_like(self.cube_k)
+            Ifft1[np.abs(self.cube_k-k1)<self.dk/2] = 1
+            dfft1 = self.dataft*Ifft1
+            #I1 = np.fft.ifftn(np.fft.fftshift(Ifft1))#/self.boxvol
+            d1 = np.fft.ifftn(np.fft.fftshift(dfft1))*self.pixelsize#/self.boxvol
             d123 = np.real(d1*d1*d1)
-            I123 = np.real(I1*I1*I1)
-            bk = np.sum(d123)/np.sum(I123)*(self.box_dims**3)**2/(self.nPixel)**3
+            #I123 = np.real(I1*I1*I1)
+            V_Del = np.sum(Ifft1)
+            bk = np.sum(d123)/V_Del
             Bks[p] = bk
             count = p+1
             print((k1**6/(2*np.pi**2)**2)*bk)
@@ -92,6 +113,20 @@ class Bispectrum:
         self.Calc_Bk()
         return {'k': self.binned_k, 'Bk': self.Bks}
 
+"""
+def bispectrum_fast_equilateral(data, box_dims, s=None, dk=0.05, dlnk=None):
+    nGridx, nGridy, nGridz = data.shape
+    Mx, My, Mz = nGridx/2, nGridy/2, nGridz/2
+    kF = 2*np.pi/box_dims
+    if s is None: 
+        s  = round(dk/kF)
+        dk = s*kF
+        print('The k bin width is recalculated to be %.4f/Mpc.'%dk)
+    dataft  = np.fft.fftn(data.astype('float64'))
+    #dataft  = np.fft.fftshift(dataft)
+    ns1, ns2, ns3 = np.arange(0,Mx,s)+s/2, np.arange(0,Mx,s)+s/2, np.arange(0,Mx,s)+s/2
+    
+"""
 
 def round_nearest_float(n, num=0.5):
     return np.round(n/num)*num
