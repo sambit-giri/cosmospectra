@@ -13,6 +13,7 @@ randsphere = toymodel.RandomSpheres(
     label=1,
     Rs=rPix,
 )
+
 out = randsphere.GetCube_FillingFraction(0.01)
 
 bisp = bispectrum.Bispectrum(box_dims, nGrid)

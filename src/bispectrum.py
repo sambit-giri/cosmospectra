@@ -38,7 +38,8 @@ class Bispectrum:
 
     def Calc_Bk_full(self):
         assert self.data is not None
-        binned_N =kF = 2*np.pi/box_dims self.binned_k.size
+        binned_N = self.binned_k.size
+        #kF = 2*np.pi/box_dims
         self.Bks = np.zeros((binned_N,binned_N,binned_N))
         for p,k1 in enumerate(self.binned_k):
             Ifft1 = np.zeros_like(self.cube_k)
