@@ -19,10 +19,11 @@ ks   = 10**np.linspace(-1.2,0.3,100)
 
 ps     = cs.power_spect_1d(out['data'], kbins=100, box_dims=box_dims)
 psfft  = bispectrum.Powerspectrum(box_dims, nGrid)
+psfft.Data(out['data'])
+psout  = psfft.Calc_Pk(ps[1])
 
 bisp = bispectrum.Bispectrum(box_dims, nGrid)
 bisp.Data(out['data'])
-
 equi = bisp.Calc_Bk_equilateral(ks)
 
 plt.plot(equi['k'], equi['Bk']*(equi['k']**3/2/np.pi**2)**2)

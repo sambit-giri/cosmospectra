@@ -91,7 +91,7 @@ class Bispectrum:
         self.nPixel = self.nGrid**3
         self.pixelsize = self.boxvol/self.nPixel
         self.dataft  = np.fft.fftshift(np.fft.fftn(self.data.astype('float64')))
-        self.dataft *= self.pixelsize
+        #self.dataft *= self.pixelsize
 
     def Calc_Bk_full(self):
         assert self.data is not None
