@@ -3,6 +3,63 @@ from scipy import stats
 from astropy import units as u
 from . import useful_speedup
 
+class Powerspectrum:
+    def __init__(self, box_dims, nGrid, dk=0.05):
+        self.box_dims = box_dims
+        self.nGrid    = nGrid
+        self.Get_k(np.zeros((self.nGrid,self.nGrid,self.nGrid)), self.box_dims)
+        self.Binned_k(dk=dk)
+        self.data   = None
+
+    def Get_k(self, data, box_dims):
+        [kx,ky,kz],k = _get_k(data, box_dims)
+        self.ks = {'kx': kx, 'ky': ky, 'kz': kz, 'k':k}
+
+    def Binned_k(self, binned_k=None, dk=0.05):
+        self.dk = dk
+        if binned_k is None:
+            bink = np.arange(self.ks['k'].min(), self.ks['k'].max(), self.dk)
+            self.binned_k = bink[1:]/2.+bink[:-1]/2.
+        else: self.binned_k = binned_k
+        self.cube_k   = useful_speedup.put_nearest(self.ks['k'], self.binned_k)
+
+    def Data(self, data=None, filename=None, file_reader=np.load):
+        if data is None: data = file_reader(filename)
+        if data.shape[0]!=self.nGrid:
+            self.nGrid = data.shape[0]
+            self.Get_k(np.zeros((self.nGrid,self.nGrid,self.nGrid)), self.box_dims)
+            self.Binned_k(dk=dk)
+        self.data   = data	
+        self.boxvol = self.box_dims**3
+        self.nPixel = self.nGrid**3
+        self.pixelsize = self.boxvol/self.nPixel
+        self.dataft  = np.fft.fftshift(np.fft.fftn(self.data.astype('float64')))
+        #self.dataft *= self.pixelsize
+
+    def Calc_Pk(self, binned_k=None, dk=0.05):
+        assert self.data is not None
+        if binned_k is not None: self.Binned_k(binned_k=binned_k, dk=dk)
+        binned_N = self.binned_k.size
+        Pks = np.zeros((binned_N))
+        for p,k1 in enumerate(self.binned_k):
+            Ifft1 = np.zeros_like(self.cube_k)
+            Ifft1[np.abs(self.cube_k-k1)<self.dk/2] = 1
+            dfft1 = self.dataft*Ifft1
+            I1 = np.fft.ifftn(np.fft.fftshift(Ifft1))#/self.nPixel
+            d1 = np.fft.ifftn(np.fft.fftshift(dfft1))#/self.boxvol
+            d123 = np.sum(np.real(d1*d1))
+            I123 = np.sum(np.real(I1*I1))
+            pk   = d123/I123*(self.boxvol)/(self.nPixel)**2
+            Pks[p] = pk
+            print(k1, (k1**3/(2*np.pi**2))*pk)
+            print('%d / %d'%(p+1,binned_N))
+        return {'k': self.binned_k, 'Pk': Pks}
+
+    def Powerspec(self, data=None):
+        if data is not None: self.Data(data=data)
+        self.Calc_Pk()
+        return {'k': self.binned_k, 'Bk': self.Bks}
+
 class Bispectrum:
     def __init__(self, box_dims, nGrid, dk=0.05):
         self.box_dims = box_dims
@@ -77,14 +134,14 @@ class Bispectrum:
             Ifft1 = np.zeros_like(self.cube_k)
             Ifft1[np.abs(self.cube_k-k1)<self.dk/2] = 1
             dfft1 = self.dataft*Ifft1
-            I1 = np.fft.ifftn(np.fft.fftshift(Ifft1))/self.nPixel
-            d1 = np.fft.ifftn(np.fft.fftshift(dfft1))/self.boxvol
+            I1 = np.fft.ifftn(np.fft.fftshift(Ifft1))#/self.nPixel
+            d1 = np.fft.ifftn(np.fft.fftshift(dfft1))#/self.boxvol
             d123 = np.sum(np.real(d1*d1*d1))
             I123 = np.sum(np.real(I1*I1*I1)) #8*np.pi**2*k1*3*self.dk**3/kF**6 
             bk   = d123/I123*(self.boxvol)**2/(self.nPixel)**3
             Bks[p] = bk
             count = p+1
-            print((k1**6/(2*np.pi**2)**2)*bk)
+            print(k1, (k1**6/(2*np.pi**2)**2)*bk)
             print('%d / %d'%(count,binned_N))
         return {'k': self.binned_k, 'Bk': Bks}
 
