@@ -33,7 +33,7 @@ class Powerspectrum:
         self.boxvol = self.box_dims**3
         self.nPixel = self.nGrid**3
         self.pixelsize = self.boxvol/self.nPixel
-        self.dataft  = np.fft.fftshift(np.fft.fftn(self.data.astype('float64')))
+        self.dataft  = _unnormalised_fftn(self.data, boxvol=self.boxvol) #np.fft.fftshift(np.fft.fftn(self.data.astype('float64')))
         #self.dataft *= self.pixelsize
 
     def Calc_Pk(self, binned_k=None, dk=0.05):
@@ -45,8 +45,8 @@ class Powerspectrum:
             Ifft1 = np.zeros_like(self.cube_k)
             Ifft1[np.abs(self.cube_k-k1)<self.dk/2] = 1
             dfft1 = self.dataft*Ifft1
-            I1 = np.fft.ifftn(np.fft.fftshift(Ifft1))#/self.nPixel
-            d1 = np.fft.ifftn(np.fft.fftshift(dfft1))#/self.boxvol
+            I1 = _unnormalised_ifftn(Ifft1, boxvol=self.boxvol) #np.fft.ifftn(np.fft.fftshift(Ifft1))#/self.nPixel
+            d1 = _unnormalised_ifftn(dfft1, boxvol=self.boxvol) #np.fft.ifftn(np.fft.fftshift(dfft1))#/self.boxvol
             d123 = np.sum(np.real(d1*d1))
             I123 = np.sum(np.real(I1*I1))
             pk   = d123/I123*(self.boxvol)/(self.nPixel)**2
@@ -90,7 +90,7 @@ class Bispectrum:
         self.boxvol = self.box_dims**3
         self.nPixel = self.nGrid**3
         self.pixelsize = self.boxvol/self.nPixel
-        self.dataft  = np.fft.fftshift(np.fft.fftn(self.data.astype('float64')))
+        self.dataft  = _unnormalised_fftn(self.data, boxvol=self.boxvol) #np.fft.fftshift(np.fft.fftn(self.data.astype('float64')))
         #self.dataft *= self.pixelsize
 
     def Calc_Bk_full(self):
@@ -134,8 +134,8 @@ class Bispectrum:
             Ifft1 = np.zeros_like(self.cube_k)
             Ifft1[np.abs(self.cube_k-k1)<self.dk/2] = 1
             dfft1 = self.dataft*Ifft1
-            I1 = np.fft.ifftn(np.fft.fftshift(Ifft1))#/self.nPixel
-            d1 = np.fft.ifftn(np.fft.fftshift(dfft1))#/self.boxvol
+            I1 = _unnormalised_ifftn(Ifft1, boxvol=self.boxvol) #np.fft.ifftn(np.fft.fftshift(Ifft1))#/self.nPixel
+            d1 = _unnormalised_ifftn(dfft1, boxvol=self.boxvol) #np.fft.ifftn(np.fft.fftshift(dfft1))#/self.boxvol
             d123 = np.sum(np.real(d1*d1*d1))
             I123 = np.sum(np.real(I1*I1*I1)) #8*np.pi**2*k1*3*self.dk**3/kF**6 
             bk   = d123/I123*(self.boxvol)**2/(self.nPixel)**3
@@ -225,3 +225,17 @@ def _get_k(input_array, box_dims):
 
 		k = np.sqrt(kx**2 + ky**2 + kz**2 )
 		return [kx,ky,kz], k
+
+def _unnormalised_fftn(data, boxvol=None, box_dims=None):
+    dataft  = np.fft.fftshift(np.fft.fftn(self.data.astype('float64')))
+    Npix    = dataft.size
+    if box_dims is not None: boxvol = box_dims**3
+    if boxvol is not None: dataft *= boxvol/Npix
+    return dataft
+
+def _unnormalised_ifftn(dataft, boxvol=None, box_dims=None):
+    data = np.fft.ifftn(np.fft.fftshift(dataft))
+    Npix = data.size
+    if box_dims is not None: boxvol = box_dims**3
+    if boxvol is not None: data *= Npix/boxvol
+    return data
