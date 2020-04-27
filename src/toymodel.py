@@ -71,7 +71,8 @@ class RandomSpheres:
 def analytical_powerspect_balls(k, R, xHI):
     Vball = 4*np.pi*R**3/3
     ni    = (1-xHI)/Vball
-    WkR   = _W(k*R)
+    kR    = k*R
+    WkR   = _W(kR)
     pHI   = (1-xHI)**2*WkR**2/ni
     return pHI
 
