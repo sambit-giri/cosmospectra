@@ -4,7 +4,7 @@ from cosmospectra import toymodel, bispectrum
 
 box_dims, nGrid = 600., 300
 rMpc = 10
-rPix = round(rMpc*box_dims/nGrid)
+rPix = round(rMpc*nGrid/box_dims)
 
 randsphere = toymodel.RandomSpheres(
     nGrid=nGrid,
@@ -15,6 +15,8 @@ randsphere = toymodel.RandomSpheres(
 )
 
 out = randsphere.GetCube_FillingFraction(0.01)
+
+
 ks   = 10**np.linspace(-1.2,0.3,100)
 
 ps     = cs.power_spect_1d(out['data'], kbins=100, box_dims=box_dims)

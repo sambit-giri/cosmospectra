@@ -227,7 +227,7 @@ def _get_k(input_array, box_dims):
 		return [kx,ky,kz], k
 
 def _unnormalised_fftn(data, boxvol=None, box_dims=None):
-    dataft  = np.fft.fftshift(np.fft.fftn(self.data.astype('float64')))
+    dataft  = np.fft.fftshift(np.fft.fftn(data.astype('float64')))
     Npix    = dataft.size
     if box_dims is not None: boxvol = box_dims**3
     if boxvol is not None: dataft *= boxvol/Npix

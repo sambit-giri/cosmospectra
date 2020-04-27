@@ -37,7 +37,7 @@ class RandomSpheres:
         if refresh: self.Refresh()
         for i,r in enumerate(self.Rs): 
             self.cube = self.PutSphere(self.cube, r)
-            useful.loading_verbose('Number of spheres: %d/%d | Filling fraction:%.3f'%(i,self.nR,self.cube.mean()))
+            useful.loading_verbose('Number of spheres: %d/%d | Filling fraction:%.3f'%(i+1,self.nR,self.cube.mean()))
         return {'Rs': self.Rs, 'data': self.cube}
 
     def GetCube_FillingFraction(self, f, refresh=False, multi_rad=False, nOverlapFails=10):
