@@ -19,7 +19,7 @@ out = randsphere.GetCube_FillingFraction(0.01)
 
 ks   = 10**np.linspace(-1.2,0.3,100)
 
-ps     = cs.power_spect_1d(out['data'], kbins=100, box_dims=box_dims)
+ps     = cs.power_spect_1d(out['data'], kbins=30, box_dims=box_dims)
 psfft  = bispectrum.Powerspectrum(box_dims, nGrid)
 psfft.Data(out['data'])
 psout  = psfft.Calc_Pk(ps[1])

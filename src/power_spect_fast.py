@@ -37,36 +37,70 @@ def power_spect_nd(input_array, box_dims, verbose=True):
 	
 	return power_spectrum
 
-def _get_k(input_array, box_dims):
-	'''
-	Get the k values for input array with given dimensions.
-	Return k components and magnitudes.
-	For internal use.
-	'''
-	if np.array(box_dims).size!=3: box_dims = np.array([box_dims,box_dims,box_dims])
-	dim = len(input_array.shape)
-	if dim == 1:
-		x = np.arange(len(input_array))
-		center = x.max()/2.
-		kx = 2.*np.pi*(x-center)/box_dims[0]
-		return [kx], kx
-	elif dim == 2:
-		x,y = np.indices(input_array.shape, dtype='int32')
-		center = np.array([(x.max()-x.min())/2, (y.max()-y.min())/2])
-		kx = 2.*np.pi * (x-center[0])/box_dims[0]
-		ky = 2.*np.pi * (y-center[1])/box_dims[1]
-		k = np.sqrt(kx**2 + ky**2)
-		return [kx, ky], k
-	elif dim == 3:
-		x,y,z = np.indices(input_array.shape, dtype='int32')
-		center = np.array([(x.max()-x.min())/2, (y.max()-y.min())/2, \
-						(z.max()-z.min())/2])
-		kx = 2.*np.pi * (x-center[0])/box_dims[0]
-		ky = 2.*np.pi * (y-center[1])/box_dims[1]
-		kz = 2.*np.pi * (z-center[2])/box_dims[2]
+# def _get_k(input_array, box_dims):
+# 	'''
+# 	Get the k values for input array with given dimensions.
+# 	Return k components and magnitudes.
+# 	For internal use.
+# 	'''
+# 	if np.array(box_dims).size!=3: box_dims = np.array([box_dims,box_dims,box_dims])
+# 	dim = len(input_array.shape)
+# 	if dim == 1:
+# 		x = np.arange(len(input_array))
+# 		center = x.max()/2.
+# 		kx = 2.*np.pi*(x-center)/box_dims[0]
+# 		return [kx], kx
+# 	elif dim == 2:
+# 		x,y = np.indices(input_array.shape, dtype='int32')
+# 		center = np.array([(x.max()-x.min())/2, (y.max()-y.min())/2])
+# 		kx = 2.*np.pi * (x-center[0])/box_dims[0]
+# 		ky = 2.*np.pi * (y-center[1])/box_dims[1]
+# 		k = np.sqrt(kx**2 + ky**2)
+# 		return [kx, ky], k
+# 	elif dim == 3:
+# 		x,y,z = np.indices(input_array.shape, dtype='int32')
+# 		center = np.array([(x.max()-x.min())/2, (y.max()-y.min())/2, \
+# 						(z.max()-z.min())/2])
+# 		kx = 2.*np.pi * (x-center[0])/box_dims[0]
+# 		ky = 2.*np.pi * (y-center[1])/box_dims[1]
+# 		kz = 2.*np.pi * (z-center[2])/box_dims[2]
 
-		k = np.sqrt(kx**2 + ky**2 + kz**2 )
-		return [kx,ky,kz], k
+# 		k = np.sqrt(kx**2 + ky**2 + kz**2 )
+# 		return [kx,ky,kz], k
+
+def _get_k(input_array, box_dims):
+    '''
+    Get the k values for input array with given dimensions.
+    Return k components and magnitudes.
+    For internal use.
+    '''
+    dim = len(input_array.shape)
+    if dim == 1:
+    	nx = input_array.shape[0]
+        x = np.arange(len(input_array))
+        center = nx/2 if nx%2==0 else (nx-1)/2
+        kx = 2.*np.pi*(x-center)/box_dims[0]
+        return [kx], kx
+    elif dim == 2:
+    	nx,ny = input_array.shape
+        x,y = np.indices(input_array.shape, dtype='int32')
+        center = np.array([nx/2 if nx%2==0 else (nx-1)/2, ny/2 if ny%2==0 else (ny-1)/2])
+        kx = 2.*np.pi * (x-center[0])/box_dims[0]
+        ky = 2.*np.pi * (y-center[1])/box_dims[1]
+        k = np.sqrt(kx**2 + ky**2)
+        return [kx, ky], k
+    elif dim == 3:
+        nx,ny,nz = input_array.shape
+        x,y,z  = np.indices(input_array.shape, dtype='int32')
+        center = np.array([nx/2 if nx%2==0 else (nx-1)/2, ny/2 if ny%2==0 else (ny-1)/2, \
+                            nz/2 if nz%2==0 else (nz-1)/2])
+        kx = 2.*np.pi * (x-center[0])/box_dims[0]
+        ky = 2.*np.pi * (y-center[1])/box_dims[1]
+        kz = 2.*np.pi * (z-center[2])/box_dims[2]
+
+        k = np.sqrt(kx**2 + ky**2 + kz**2 )     
+        return [kx,ky,kz], k
+
 
 
 def power_spect_1d(input_array, kbins=10, binning='log', box_dims=244/.7, return_modes=False, kmin=None, kmax=None):

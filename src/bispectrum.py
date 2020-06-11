@@ -3,6 +3,64 @@ from scipy import stats
 from astropy import units as u
 from . import useful_speedup
 
+class SymmetricPolyspectrum:
+    def __init__(self, box_dims, nGrid, dk=0.05):
+        self.box_dims = box_dims
+        self.nGrid    = nGrid
+        self.Get_k(np.zeros((self.nGrid,self.nGrid,self.nGrid)), self.box_dims)
+        self.Binned_k(dk=dk)
+        self.data   = None
+
+    def Get_k(self, data, box_dims):
+        [kx,ky,kz],k = _get_k(data, box_dims)
+        self.ks = {'kx': kx, 'ky': ky, 'kz': kz, 'k':k}
+
+    def Binned_k(self, binned_k=None, dk=0.05):
+        self.dk = dk
+        if binned_k is None:
+            bink = np.arange(self.ks['k'].min(), self.ks['k'].max(), self.dk)
+            self.binned_k = bink[1:]/2.+bink[:-1]/2.
+        else: self.binned_k = binned_k
+        self.cube_k   = useful_speedup.put_nearest(self.ks['k'], self.binned_k)
+
+    def Data(self, data=None, filename=None, file_reader=np.load):
+        if data is None: data = file_reader(filename)
+        if data.shape[0]!=self.nGrid:
+            self.nGrid = data.shape[0]
+            self.Get_k(np.zeros((self.nGrid,self.nGrid,self.nGrid)), self.box_dims)
+            self.Binned_k(dk=dk)
+        self.data   = data  
+        self.boxvol = self.box_dims**3
+        self.nPixel = self.nGrid**3
+        self.pixelsize = self.boxvol/self.nPixel
+        self.dataft  = _unnormalised_fftn(self.data, boxvol=None) #np.fft.fftshift(np.fft.fftn(self.data.astype('float64')))
+        #self.dataft *= self.pixelsize
+
+    def Calc_spec(self, binned_k=None, dk=0.05, order=3):
+        assert self.data is not None
+        if binned_k is not None: self.Binned_k(binned_k=binned_k, dk=dk)
+        binned_N = self.binned_k.size
+        Pks = np.zeros((binned_N))
+        for p,k1 in enumerate(self.binned_k):
+            Ifft1 = np.zeros_like(self.cube_k)
+            Ifft1[np.abs(self.cube_k-k1)<self.dk/2] = 1
+            dfft1 = self.dataft*Ifft1
+            I1 = _unnormalised_ifftn(Ifft1, boxvol=None)
+            d1 = _unnormalised_ifftn(dfft1, boxvol=None)
+            d123 = np.sum(np.real(d1**order))
+            I123 = np.sum(np.real(I1*order))
+            pk   = d123/I123*(self.boxvol)**(order-1)/(self.nPixel)**order
+            Pks[p] = pk
+            #print(k1, (k1**3/(2*np.pi**2))*pk)
+            print('%d / %d'%(p+1,binned_N))
+        return {'k': self.binned_k, 'Pk': Pks}
+
+    def Polyspec(self, data=None, order=3):
+        if data is not None: self.Data(data=data)
+        self.Calc_spec(order=3)
+        return {'k': self.binned_k, 'spec': self.Bks}
+
+
 class Powerspectrum:
     def __init__(self, box_dims, nGrid, dk=0.05):
         self.box_dims = box_dims
