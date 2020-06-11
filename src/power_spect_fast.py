@@ -76,13 +76,13 @@ def _get_k(input_array, box_dims):
     '''
     dim = len(input_array.shape)
     if dim == 1:
-    	nx = input_array.shape[0]
+        nx = input_array.shape[0]
         x = np.arange(len(input_array))
         center = nx/2 if nx%2==0 else (nx-1)/2
         kx = 2.*np.pi*(x-center)/box_dims[0]
         return [kx], kx
     elif dim == 2:
-    	nx,ny = input_array.shape
+        nx,ny = input_array.shape
         x,y = np.indices(input_array.shape, dtype='int32')
         center = np.array([nx/2 if nx%2==0 else (nx-1)/2, ny/2 if ny%2==0 else (ny-1)/2])
         kx = 2.*np.pi * (x-center[0])/box_dims[0]
