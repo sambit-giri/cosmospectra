@@ -2,6 +2,7 @@ import numpy as np
 from scipy import stats
 from astropy import units as u
 from . import useful_speedup
+from .power_spect_fast import _get_k
 
 class SymmetricPolyspectrum:
     def __init__(self, box_dims, nGrid, dk=0.05):
@@ -253,36 +254,36 @@ def put_nearest(array, ref_list):
         fltn[i] = ref_list[np.abs(ref_list-ft).argmin()]
     return fltn.reshape(array.shape)
 
-def _get_k(input_array, box_dims):
-	'''
-	Get the k values for input array with given dimensions.
-	Return k components and magnitudes.
-	For internal use.
-	'''
-	if np.array(box_dims).size!=3: box_dims = np.array([box_dims,box_dims,box_dims])
-	dim = len(input_array.shape)
-	if dim == 1:
-		x = np.arange(len(input_array))
-		center = x.max()/2.
-		kx = 2.*np.pi*(x-center)/box_dims[0]
-		return [kx], kx
-	elif dim == 2:
-		x,y = np.indices(input_array.shape, dtype='int32')
-		center = np.array([(x.max()-x.min())/2, (y.max()-y.min())/2])
-		kx = 2.*np.pi * (x-center[0])/box_dims[0]
-		ky = 2.*np.pi * (y-center[1])/box_dims[1]
-		k = np.sqrt(kx**2 + ky**2)
-		return [kx, ky], k
-	elif dim == 3:
-		x,y,z = np.indices(input_array.shape, dtype='int32')
-		center = np.array([(x.max()-x.min())/2, (y.max()-y.min())/2, \
-						(z.max()-z.min())/2])
-		kx = 2.*np.pi * (x-center[0])/box_dims[0]
-		ky = 2.*np.pi * (y-center[1])/box_dims[1]
-		kz = 2.*np.pi * (z-center[2])/box_dims[2]
+# def _get_k(input_array, box_dims):
+# 	'''
+# 	Get the k values for input array with given dimensions.
+# 	Return k components and magnitudes.
+# 	For internal use.
+# 	'''
+# 	if np.array(box_dims).size!=3: box_dims = np.array([box_dims,box_dims,box_dims])
+# 	dim = len(input_array.shape)
+# 	if dim == 1:
+# 		x = np.arange(len(input_array))
+# 		center = x.max()/2.
+# 		kx = 2.*np.pi*(x-center)/box_dims[0]
+# 		return [kx], kx
+# 	elif dim == 2:
+# 		x,y = np.indices(input_array.shape, dtype='int32')
+# 		center = np.array([(x.max()-x.min())/2, (y.max()-y.min())/2])
+# 		kx = 2.*np.pi * (x-center[0])/box_dims[0]
+# 		ky = 2.*np.pi * (y-center[1])/box_dims[1]
+# 		k = np.sqrt(kx**2 + ky**2)
+# 		return [kx, ky], k
+# 	elif dim == 3:
+# 		x,y,z = np.indices(input_array.shape, dtype='int32')
+# 		center = np.array([(x.max()-x.min())/2, (y.max()-y.min())/2, \
+# 						(z.max()-z.min())/2])
+# 		kx = 2.*np.pi * (x-center[0])/box_dims[0]
+# 		ky = 2.*np.pi * (y-center[1])/box_dims[1]
+# 		kz = 2.*np.pi * (z-center[2])/box_dims[2]
 
-		k = np.sqrt(kx**2 + ky**2 + kz**2 )
-		return [kx,ky,kz], k
+# 		k = np.sqrt(kx**2 + ky**2 + kz**2 )
+# 		return [kx,ky,kz], k
 
 def _unnormalised_fftn(data, boxvol=None, box_dims=None):
     dataft  = np.fft.fftshift(np.fft.fftn(data.astype('float64')))
