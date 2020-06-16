@@ -101,7 +101,50 @@ def _get_k(input_array, box_dims):
         k = np.sqrt(kx**2 + ky**2 + kz**2 )     
         return [kx,ky,kz], k
 
+def _get_kF(box_dims):
+    '''
+    Get the k values for input array with given dimensions.
+    Return k components and magnitudes.
+    For internal use.
+    '''
+    dim = 1 if isinstance(box_dims, (int,float)) else len(box_dims)
+    if dim == 1:
+        kx = 2.*np.pi/box_dims
+        return kx
+    return 2.*np.pi/np.array(box_dims)
 
+def _get_nk(input_array, box_dims):
+    '''
+    Get the k values for input array with given dimensions.
+    Return k components and magnitudes.
+    For internal use.
+    '''
+    dim = len(input_array.shape)
+    if dim == 1:
+        nx = input_array.shape[0]
+        x = np.arange(len(input_array))
+        center = nx/2 if nx%2==0 else (nx-1)/2
+        kx = x-center
+        return [kx], kx
+    elif dim == 2:
+        nx,ny = input_array.shape
+        x,y = np.indices(input_array.shape, dtype='int32')
+        center = np.array([nx/2 if nx%2==0 else (nx-1)/2, ny/2 if ny%2==0 else (ny-1)/2])
+        kx = (x-center[0])
+        ky = (y-center[1])
+        k = np.sqrt(kx**2 + ky**2)
+        return [kx, ky], k
+    elif dim == 3:
+        nx,ny,nz = input_array.shape
+        x,y,z  = np.indices(input_array.shape, dtype='int32')
+        center = np.array([nx/2 if nx%2==0 else (nx-1)/2, ny/2 if ny%2==0 else (ny-1)/2, \
+                            nz/2 if nz%2==0 else (nz-1)/2])
+        kx = (x-center[0])
+        ky = (y-center[1])
+        kz = (z-center[2])
+
+        k = np.sqrt(kx**2 + ky**2 + kz**2 )     
+        return [kx,ky,kz], k
 
 def power_spect_1d(input_array, kbins=10, binning='log', box_dims=244/.7, return_modes=False, kmin=None, kmax=None):
 	power = power_spect_nd(input_array, box_dims, verbose=0)
