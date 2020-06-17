@@ -75,6 +75,7 @@ def _get_k(input_array, box_dims):
     For internal use.
     '''
     dim = len(input_array.shape)
+    if np.array(box_dims).size!=dim: box_dims = np.array([box_dims for i in range(dim)])
     if dim == 1:
         nx = input_array.shape[0]
         x = np.arange(len(input_array))
@@ -120,6 +121,7 @@ def _get_nk(input_array, box_dims):
     For internal use.
     '''
     dim = len(input_array.shape)
+    if np.array(box_dims).size!=dim: box_dims = np.array([box_dims for i in range(dim)])
     if dim == 1:
         nx = input_array.shape[0]
         x = np.arange(len(input_array))
