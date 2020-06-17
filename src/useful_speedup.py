@@ -66,7 +66,7 @@ def _bispectrum_fast_equilateral_num(dataft, ns1):
 
 
 @njit(parallel=True)
-def _bisp_equilateral_direct(mx, my, mz, cond1):
+def _bisp_equilateral_direct(ft_real, mx, my, mz, cond1, msum_cond=1):
     b_unnorm = 0
     n_tri    = 0
 

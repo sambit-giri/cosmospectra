@@ -2,6 +2,7 @@ import numpy as np
 from scipy import stats
 from astropy import units as u
 from .power_spect_fast import _get_k, _get_kF, _get_nk
+from time import time
 
 def bisp_equilateral(input_array, box_dims, verbose=True, kbins=20):
 	if np.array(box_dims).size!=3: box_dims = np.array([box_dims,box_dims,box_dims])
@@ -28,6 +29,7 @@ def bisp_equilateral(input_array, box_dims, verbose=True, kbins=20):
 
 	for ni,nl,nh in zip(ns,n_low,n_high):
 		print(nl,ni,nh)
+		tstart = time()
 
 		cond1 = np.argwhere(np.abs(m-ni)<0.5)
 		b_unnorm, n_tri = _bisp_equilateral_direct(mx, my, mz, cond1, msum_cond)
@@ -48,10 +50,12 @@ def bisp_equilateral(input_array, box_dims, verbose=True, kbins=20):
 		# 				b_unnorm += ft_real[i1[0],i1[1],i1[2]]*ft_real[i1[0],i1[1],i1[2]]*ft_real[i1[0],i1[1],i1[2]]
 		# 				n_tri += 1
 
+		tend = time()
 		ki, Bi = ni*kFx, fctr*b_unnorm/n_tri
 		if verbose: 
 			print('Total number of triangle: {0:d}'.format(n_tri))
 			print('k, B(k), (k^6/(2pi^2)^2)B(k) = {0:.5f}, {1:.5f}, {2:.5f}'.format(ki,Bi,Bi*(ki**3/2/np.pi**2)**2))
+			print('Time taken: {0:.3f} minutes.'.format((tend-tstart)/60))
 		Bm.append(Bi)
 		Tri.append(n_tri)
 
