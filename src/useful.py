@@ -2,7 +2,7 @@ import numpy as np
 import sys
 
 def loading_verbose(string):
-    msg = ("Completed: " + string )
+    msg = string if isinstance(string, (str)) else str(string)
     sys.stdout.write('\r'+msg)
     sys.stdout.flush()
 

@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import stats
 from astropy import units as u
-from . import useful_speedup
+from . import useful_speedup, useful
 from .power_spect_fast import _get_k
 
 class SymmetricPolyspectrum:
@@ -200,8 +200,9 @@ class Bispectrum:
             bk   = d123/I123*(self.boxvol)**2/(self.nPixel)**3
             Bks[p] = bk
             count = p+1
-            print(k1, (k1**6/(2*np.pi**2)**2)*bk)
-            print('%d / %d'%(count,binned_N))
+            #print(k1, (k1**6/(2*np.pi**2)**2)*bk)
+            #print('%d / %d'%(count,binned_N))
+            useful.loading_verbose('%d / %d'%(count,binned_N))
         return {'k': self.binned_k, 'Bk': Bks}
 
     def Calc_Bk_equilateral_foreman(self, binned_k=None, dk=0.05):
