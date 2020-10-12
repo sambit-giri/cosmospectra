@@ -4,6 +4,7 @@ from astropy import units as u
 from . import useful_speedup, useful
 from .power_spect_fast import _get_k
 import tqdm
+from time import time
 
 class SymmetricPolyspectrum:
     def __init__(self, box_dims, nGrid, dk=0.05):
