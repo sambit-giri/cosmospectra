@@ -3,6 +3,7 @@ from scipy import stats
 from astropy import units as u
 from . import useful_speedup, useful
 from .power_spect_fast import _get_k
+import tqdm
 
 class SymmetricPolyspectrum:
     def __init__(self, box_dims, nGrid, dk=0.05):
@@ -63,13 +64,17 @@ class SymmetricPolyspectrum:
 
 
 class Powerspectrum:
-    def __init__(self, box_dims, nGrid, dk=0.05):
+    def __init__(self, box_dims, nGrid, dk=0.05, n_jobs=1, use_io=True):
         self.box_dims = box_dims
         self.nGrid    = nGrid
         self.Get_k(np.zeros((self.nGrid,self.nGrid,self.nGrid)), self.box_dims)
         self.Binned_k(dk=dk)
         self.data   = None
-
+        self.n_jobs = n_jobs
+        self.temp_file = None
+        if use_io:
+            self.temp_file = use_io if type(use_io)==str else 'temp_{}.pkl'.format(int(time()))
+        
     def Get_k(self, data, box_dims):
         [kx,ky,kz],k = _get_k(data, box_dims)
         self.ks = {'kx': kx, 'ky': ky, 'kz': kz, 'k':k}
@@ -88,7 +93,7 @@ class Powerspectrum:
             self.nGrid = data.shape[0]
             self.Get_k(np.zeros((self.nGrid,self.nGrid,self.nGrid)), self.box_dims)
             self.Binned_k(dk=dk)
-        self.data   = data	
+        self.data   = data
         self.boxvol = self.box_dims**3
         self.nPixel = self.nGrid**3
         self.pixelsize = self.boxvol/self.nPixel
@@ -99,19 +104,65 @@ class Powerspectrum:
         assert self.data is not None
         if binned_k is not None: self.Binned_k(binned_k=binned_k, dk=dk)
         binned_N = self.binned_k.size
-        Pks = np.zeros((binned_N))
-        for p,k1 in enumerate(self.binned_k):
-            Ifft1 = np.zeros_like(self.cube_k)
-            Ifft1[np.abs(self.cube_k-k1)<self.dk/2] = 1
-            dfft1 = self.dataft*Ifft1
+        # Pks = np.zeros((binned_N))
+        # for p,k1 in enumerate(self.binned_k):
+        #     Ifft1 = np.zeros_like(self.cube_k)
+        #     Ifft1[np.abs(self.cube_k-k1)<self.dk/2] = 1
+        #     dfft1 = self.dataft*Ifft1
+        #     I1 = _unnormalised_ifftn(Ifft1, boxvol=None) #np.fft.ifftn(np.fft.fftshift(Ifft1))#/self.nPixel
+        #     d1 = _unnormalised_ifftn(dfft1, boxvol=None) #np.fft.ifftn(np.fft.fftshift(dfft1))#/self.boxvol
+        #     d123 = np.sum(np.real(d1*d1))
+        #     I123 = np.sum(np.real(I1*I1))
+        #     pk   = d123/I123*(self.boxvol)/(self.nPixel)**2
+        #     Pks[p] = pk
+        #     print(k1, (k1**3/(2*np.pi**2))*pk)
+        #     print('%d / %d'%(p+1,binned_N))
+
+        if self.temp_file is not None:
+            temp_saved = {}
+            temp_saved['binned_k'] = self.binned_k
+            temp_saved['cube_k']   = self.cube_k
+            temp_saved['dataft']   = self.dataft
+            temp_saved['dk']       = dk
+            pickle.dump(temp_saved, open(self.temp_file, 'wb'))
+            
+        def create_Ifft_io(p):
+            temp_saved = pickle.load(open(self.temp_file, 'rb'))
+            k1 = temp_saved['binned_k'][p]
+            Ifft1 = np.zeros_like(temp_saved['cube_k'])
+            Ifft1[np.abs(temp_saved['cube_k']-k1)<temp_saved['dk']/2] = 1
+            temp_saved['{}'.format(int(p))] = Ifft1
+            pickle.dump(temp_saved, open(self.temp_file, 'wb'))
+            
+        def temp_io(p):
+            temp_saved = pickle.load(open(self.temp_file, 'rb'))
             I1 = _unnormalised_ifftn(Ifft1, boxvol=None) #np.fft.ifftn(np.fft.fftshift(Ifft1))#/self.nPixel
             d1 = _unnormalised_ifftn(dfft1, boxvol=None) #np.fft.ifftn(np.fft.fftshift(dfft1))#/self.boxvol
             d123 = np.sum(np.real(d1*d1))
             I123 = np.sum(np.real(I1*I1))
-            pk   = d123/I123*(self.boxvol)/(self.nPixel)**2
-            Pks[p] = pk
-            print(k1, (k1**3/(2*np.pi**2))*pk)
-            print('%d / %d'%(p+1,binned_N))
+            pk   = d123/I123*(boxvol)/(nPixel)**2
+            return pk
+            
+            
+        def temp(p, binned_k, dk, cube_k, dataft, boxvol, nPixel):
+            k1 = binned_k[p]
+            Ifft1 = np.zeros_like(cube_k)
+            Ifft1[np.abs(cube_k-k1)<dk/2] = 1
+            dfft1 = dataft*Ifft1
+            I1 = _unnormalised_ifftn(Ifft1, boxvol=None) #np.fft.ifftn(np.fft.fftshift(Ifft1))#/self.nPixel
+            d1 = _unnormalised_ifftn(dfft1, boxvol=None) #np.fft.ifftn(np.fft.fftshift(dfft1))#/self.boxvol
+            d123 = np.sum(np.real(d1*d1))
+            I123 = np.sum(np.real(I1*I1))
+            pk   = d123/I123*(boxvol)/(nPixel)**2
+            return pk
+
+        if self.temp_file is not None:
+            for p in tqdm(range(binned_N)): create_Ifft_io(p)
+            Pks = [temp_io(p) for p in tqdm(range(binned_N))]
+        else:
+            Pks = [temp(p, self.binned_k, self.dk, self.cube_k, self.dataft, self.boxvol, self.nPixel) for p in tqdm(range(binned_N))]
+
+        Pks = np.array(Pks)
         return {'k': self.binned_k, 'Pk': Pks}
 
     def Powerspec(self, data=None):
@@ -189,6 +240,7 @@ class Bispectrum:
         if binned_k is not None: self.Binned_k(binned_k=binned_k, dk=dk)
         binned_N = self.binned_k.size
         Bks = np.zeros((binned_N))
+        tstart = time()
         for p,k1 in enumerate(self.binned_k):
             Ifft1 = np.zeros_like(self.cube_k)
             Ifft1[np.abs(self.cube_k-k1)<self.dk/2] = 1
@@ -202,7 +254,8 @@ class Bispectrum:
             count = p+1
             #print(k1, (k1**6/(2*np.pi**2)**2)*bk)
             #print('%d / %d'%(count,binned_N))
-            useful.loading_verbose('%d / %d'%(count,binned_N))
+            useful.loading_verbose('%d / %d | Elapsed time %d s'%(count,binned_N,int(time()-tstart)))
+        print('...done')
         return {'k': self.binned_k, 'Bk': Bks}
 
     def Calc_Bk_equilateral_foreman(self, binned_k=None, dk=0.05):
@@ -299,3 +352,13 @@ def _unnormalised_ifftn(dataft, boxvol=None, box_dims=None):
     if box_dims is not None: boxvol = box_dims**3
     if boxvol is not None: data *= Npix/boxvol
     return data
+
+
+def bisp_equilateral_fast(data, box_dims, dk=0.05, kbins=None):
+    tstart = time()
+    bisp = bispectrum.Bispectrum(box_dims, data.shape[0], dk=dk)
+    bisp.Data(data)
+    equi = bisp.Calc_Bk_equilateral(kbins)
+    print('  ')
+    print('Runtime: {:.2f} mins'.format((time()-tstart)/60))
+    return equi['Bk'], equi['k']

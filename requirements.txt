@@ -3,3 +3,5 @@ scipy
 astropy
 numba
 pyfftw
+tqdm
+joblib
