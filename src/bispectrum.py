@@ -357,8 +357,11 @@ def _unnormalised_ifftn(dataft, boxvol=None, box_dims=None):
 
 def bisp_equilateral_fast(data, box_dims, dk=0.05, kbins=None):
     tstart = time()
+    print('Preparing estimator...')
     bisp = Bispectrum(box_dims, data.shape[0], dk=dk)
     bisp.Data(data)
+    print('...done')
+    print('Estimating...')
     equi = bisp.Calc_Bk_equilateral(kbins)
     print('Runtime: {:.2f} mins'.format((time()-tstart)/60))
     return equi['Bk'], equi['k']
