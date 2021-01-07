@@ -17,7 +17,7 @@ For example:
 from .power_spect_fast import *
 from .power_spect_response import *
 from . import toymodel
-from . import bispectrum
+from .bispectrum import *
 
 #Suppress warnings from zero-divisions and nans
 import numpy

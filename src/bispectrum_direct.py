@@ -128,6 +128,24 @@ def bisp_equilateral_mc(input_array, box_dims, verbose=True, kbins=20, n_samples
 	return np.array(Bm), ks, np.array(Tri), np.array(Bm_err)
 
 
+def _bisp_equilateral_direct(ft_real, mx, my, mz, cond1, msum_cond=1):
+    b_unnorm = 0
+    n_tri    = 0
+
+    for i1 in cond1:
+        for i2 in cond1:
+            for i3 in cond1:
+                m1 = np.array([mx[i1[0],i1[1],i1[2]],my[i1[0],i1[1],i1[2]],mz[i1[0],i1[1],i1[2]]])
+                m2 = np.array([mx[i2[0],i2[1],i2[2]],my[i2[0],i2[1],i2[2]],mz[i2[0],i2[1],i2[2]]])
+                m3 = np.array([mx[i3[0],i3[1],i3[2]],my[i3[0],i3[1],i3[2]],mz[i3[0],i3[1],i3[2]]])
+                m_sum = m1+m2+m3
+                cond2 = np.all(np.abs(m_sum)<msum_cond)
+                if cond2: 
+                    #print(m_sum)
+                    b_unnorm += ft_real[i1[0],i1[1],i1[2]]*ft_real[i1[0],i1[1],i1[2]]*ft_real[i1[0],i1[1],i1[2]]
+                    n_tri += 1
+
+    return b_unnorm, n_tri   
 
 
 
