@@ -16,6 +16,8 @@ setup(name='cosmospectra',
       packages=['cosmospectra'],
       package_data={'share':['*'],},
       install_requires=['numpy','scipy','astropy', 'numba'],
-      url="https://github.com/sambit-giri/cosmospectra.git"
-      #include_package_data=True,
+      url="https://github.com/sambit-giri/cosmospectra.git",
+      include_package_data=True,
+      long_description=open('README.md').read(),
+      long_description_content_type='text/markdown',
 )
