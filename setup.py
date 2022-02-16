@@ -4,8 +4,8 @@ Created on 05 October 2019
 Setup script
 '''
 
-#from setuptools import setup, find_packages
-from distutils.core import setup
+from setuptools import setup, find_packages
+#from distutils.core import setup
 
 
 setup(name='cosmospectra',
