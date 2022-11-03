@@ -224,48 +224,82 @@ def dimensional_power(input_array, kbins=10, binning='log', box_dims=244/.7, ret
 	return ps*ks**3/2/np.pi**2, ks
 
 
-def power_spect_mu(input_array, kbins=10, box_dims=244/.7, return_modes=False, mubins=10, binning='log', nu_axis=2):
-	if type(binning)==str: binning = [binning, binning]
+def power_spect_2d(input_array, kbins=10, binning='log', box_dims=244/.7, return_modes=False, nu_axis=2, window=None):
+	'''
+	Calculate the power spectrum and bin it in kper and kpar
+	input_array is the array to calculate the power spectrum from
+	
+	Parameters: 
+		input_array (numpy array): the data array
+		nu_axis = 2 (integer): the line-of-sight axis
+		kbins = 10 (integer or array-like): The number of bins,
+			If you want different bins for kper and kpar, then provide a list [n_kper, n_par]
+		box_dims = 244/.7 (float or array-like): the dimensions of the 
+			box. If this is None, the current box volume is used along all
+			dimensions. If it is a float, this is taken as the box length
+			along all dimensions. If it is an array-like, the elements are
+			taken as the box length along each axis.
+		return_n_modes = False (bool): if true, also return the
+			number of modes in each bin
+		binning = 'log' : It defines the type of binning in k-space. The other options are
+				    'linear' or 'mixed'.
+		window = None : It tappers the data in the frequency direction to control shape change at the boundary slices. 
+					The other options are 'blackmanharris' and 'tukey'. If the data has sharp change in the angular/spatial 
+					direction, please provide a 3D window as a numpy array.
+			
+	Returns: 
+		A tuple with (Pk, kper_bins, kpar_bins) if return_modes is False else (Pk, kper_bins, kpar_bins, n_modes), 
+		where Pk is an array with the power spectrum of dimensions (n_kper x n_kpar), 
+		mubins is an array with the mu bin centers,
+		kbins is an array with the k bin centers and 
+		n_modes is the number of modes.
+	
+	'''
+	if window is not None:
+                from scipy.signal import windows
+                if window.lower()=='blackmanharris':
+                        input_array *= windows.blackmanharris(input_array.shape[-1])[None,None,:]
+                elif window.lower()=='tukey':
+                        input_array *= windows.tukey(input_array.shape[-1])[None,None,:]
+                else:
+                        input_array *= window
+
+	if np.array(kbins).size==1: kbins = [kbins, kbins]
 	power = power_spect_nd(input_array, box_dims, verbose=0)
 	[kx,ky,kz], k = _get_k(input_array, box_dims)
 	kdict = {}
 	kdict['0'], kdict['1'], kdict['2'] = kx, ky, kz
 	del kx, ky, kz
-	kpar = kdict[str(nu_axis)]
-	kper = np.sqrt(kdict[str(np.setdiff1d([0,1,2],nu_axis)[0])]**2+kdict[str(np.setdiff1d([0,1,2],nu_axis)[1])]**2)
-	m = np.abs(kpar/k)
-
-	if binning[0]=='log': 
-		ks = np.linspace(np.log10(np.abs(k[k!=0]).min()), np.log10(k.max()), kbins+1)
-		k  = np.log10(k)
-	else: ks = np.linspace(np.abs(k[k!=0]).min(), k.max(), kbins+1)
-	ks = (ks[:-1]+ks[1:])/2.
-	k_width = ks[1]-ks[0]
-
-	if binning[1]=='log': 
-		m1 = m[np.isfinite(m)]
-		mu = np.linspace(np.log10(np.abs(m1[m1!=0]).min()), np.log10(m1.max()), mubins+1)
-		m  = np.log10(m)
-	else: mu = np.linspace(0,1,mubins+1); 
-	mu = (mu[:-1]+mu[1:])/2.
-	m_width = mu[1]-mu[0]
-
-	ps = np.zeros((kbins, mubins))
-	n_modes = np.zeros((kbins, mubins))
-
-	k, m, power = k.flatten(), m.flatten(), power.flatten()
-	for i,a in enumerate(ks):
-		for j,b in enumerate(mu):
-			arg = np.intersect1d(np.argwhere(np.abs(k-a)<=k_width/2.), np.argwhere(np.abs(m[np.isfinite(m)]-b)<=m_width/2.))
+	kz = kdict[str(nu_axis)]
+	kp = np.sqrt(kdict[str(np.setdiff1d([0,1,2],nu_axis)[0])]**2+kdict[str(np.setdiff1d([0,1,2],nu_axis)[1])]**2)
+	kz = np.abs(kz)
+	# print(np.abs(kp[kp!=0]).min(),np.abs(kz[kz!=0]).min())
+	if binning=='log': 
+		kper = np.linspace(np.log10(np.abs(kp[kp!=0]).min()), np.log10(kp.max()), kbins[0]+1)
+		kpar = np.linspace(np.log10(np.abs(kz[kz!=0]).min()), np.log10(kz.max()), kbins[1]+1)
+		kp, kz  = np.log10(kp), np.log10(kz)
+	elif binning=='linear':
+		kper = np.linspace(np.abs(kp[kp!=0]).min(), kp.max(), kbins[0]+1)
+		kpar = np.linspace(np.abs(kz[kz!=0]).min(), kz.max(), kbins[1]+1)
+	k_width = kper[1]-kper[0], kpar[1]-kpar[0]
+	# print(10**kper,10**kpar)
+	kper = (kper[:-1]+kper[1:])/2.
+	kpar = (kpar[:-1]+kpar[1:])/2.
+	# print(10**kper,10**kpar)
+	ps = np.zeros((kbins[0],kbins[1]))
+	n_modes = np.zeros((kbins[0],kbins[1]))
+	kp, kz, power = kp.flatten(), kz.flatten(), power.flatten()
+	for i,a in enumerate(kper):
+		for j,b in enumerate(kpar):
+			arg = np.intersect1d(np.argwhere(np.abs(kp-a)<=k_width[0]/2.), np.argwhere(np.abs(kz-b)<=k_width[1]/2.))
 			ps[i,j] = power[arg].sum()
 			n_modes[i,j] = arg.size
 
-
 	ps = ps/n_modes
-	if binning[0]=='log': ks = 10**ks
-	if binning[1]=='log': mu = 10**mu
-	if return_modes: return ps, ks, mu, n_modes
-	return ps, ks, mu
+	if binning=='log': kper, kpar = 10**kper, 10**kpar
+	if return_modes: return ps, kper, kpar, n_modes
+	# print(kper,kpar)
+	return ps, kper, kpar
 
 
 def plot_2d_power(ps, xticks, yticks, xlabel, ylabel, color_label=None):
