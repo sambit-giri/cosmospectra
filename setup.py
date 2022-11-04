@@ -9,7 +9,7 @@ from setuptools import setup, find_packages
 
 
 setup(name='cosmospectra',
-      version='0.1',
+      version='0.1.1',
       author='Sambit Giri',
       author_email='sambit.giri@astro.su.se',
       package_dir = {'cosmospectra' : 'src'},
